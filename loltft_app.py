@@ -39,7 +39,7 @@ def get_rank_by_id(enc_id):
     if res.text == '[]':
         return None, None, None
     res = json.loads(res.text)[0]
-    print("lol:", res)
+    #print("lol:", res)
     if res['queueType'] == 'RANKED_SOLO_5x5':
         tier, rank, pts = res['tier'], res['rank'], res['leaguePoints']
     else:
@@ -56,9 +56,14 @@ def get_tft_rank_by_id(enc_id):
         # print("null")
         return None, None, None
     res = json.loads(res.text)[0]
-    print("tft:", res)
+    #print("tft:", res)
     tft_tier, tft_rank, tft_pts = res['tier'], res['rank'], res['leaguePoints']
     return tft_tier, tft_rank, tft_pts
+
+
+@ app.route('/')
+def index():
+    return redirect('/search')
 
 
 @ app.route('/search')
@@ -70,16 +75,16 @@ def search():
 def search_id():
     print(request.form['summon_name'])
     if request.form['summon_name'] == '':
-        print("search_id=null")
+        # print("search_id=null")
         return redirect('/search')
     else:
         summoner_name = request.form['summon_name']
         enc_id = get_id_by_summonname(summoner_name)
         tier, rank, pts = get_rank_by_id(enc_id)
         tft_tier, tft_rank, tft_pts = get_tft_rank_by_id(enc_id)
-        print("find id of ", summoner_name)
-        print("LOL : ", tier, rank, pts)
-        print("TFT : ", tft_tier, tft_rank, tft_pts)
+        #print("find id of ", summoner_name)
+        #print("LOL : ", tier, rank, pts)
+        #print("TFT : ", tft_tier, tft_rank, tft_pts)
         return render_template('search.html', summon_name=summoner_name, tier=tier, rank=rank, pts=pts, tft_tier=tft_tier, tft_rank=tft_rank, tft_pts=tft_pts)
 
 
