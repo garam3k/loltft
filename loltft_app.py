@@ -61,12 +61,14 @@ def get_tft_rank_by_id(enc_id):
     tft_tier, tft_rank, tft_pts = res['tier'], res['rank'], res['leaguePoints']
     return tft_tier, tft_rank, tft_pts
 
+
 @ app.before_request
 def before_request():
     if request.url.startswith('https://'):
-        url = request.url.replace('https://','http://',1)
+        url = request.url.replace('https://', 'http://', 1)
         code = 301
         return redirect(url, code=code)
+
 
 @ app.route('/')
 def index():
@@ -98,4 +100,4 @@ def search_id():
 if __name__ == '__main__':
     #ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     #ssl_context.load_cert_chain(certfile='newcert.pem', keyfile='newkey.pem', password='secret')
-    app.run(host='0.0.0.0', port='8080', debug=True)
+    app.run(host='0.0.0.0', port='80', debug=True)
