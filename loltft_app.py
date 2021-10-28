@@ -13,7 +13,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 app.secret_key = 'garam_server'  # 로그인 기능과 관련된 key 선언
-api_key = 'RGAPI-65da7eac-40cf-4ceb-8d3b-70077b5c4716'
+api_key = ''
 
 # app.register_blueprint(blog.blog_abtest, url_prefix='/blog')
 # login_manager = LoginManager()  # 로그인 객체 선언
