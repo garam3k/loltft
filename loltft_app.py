@@ -5,6 +5,7 @@ import os
 import requests
 import json
 import ssl
+import time
 # from blog_view import blog
 # from blog_control.user_mgmt import User
 
@@ -62,6 +63,31 @@ def get_tft_rank_by_id(enc_id):
     return tft_tier, tft_rank, tft_pts
 
 
+def my_match_data_by_puuid(pid, pname):
+    base_url = 'https://asia.api.riotgames.com/lol/match/v5/matches/'
+    headers = {'X-Riot-Token': api_key}
+    res = requests.get(base_url+pid, headers=headers)
+    res = json.loads(res.text)
+
+    start_time = round(time.time() - res['info']['gameEndTimestamp']/1000)
+    game_type = res['info']['gameMode']
+    game_time = res['info']['gameDuration']
+    kda, cs, deal, win = -1, -1, -1, False
+    participants = res['info']['participants']
+    for i in range(10):
+        if participants[i]['summonerName'] != pname:
+            continue
+        kills = participants[i]['kills']
+        deaths = participants[i]['deaths']
+        assists = participants[i]['assists']
+        kda = round((kills + assists) / deaths, 2)
+        cs = participants[i]['totalMinionsKilled']
+        deal = participants[i]['totalDamageDealtToChampions']
+        win = participants[i]['win']
+
+    return {'start_time': start_time, 'kda': kda, 'game_time': game_time, 'game_type': game_type, 'cs': cs, 'deal': deal, 'win': win}
+
+
 @ app.before_request
 def before_request():
     if request.url.startswith('https://'):
@@ -82,7 +108,7 @@ def search():
 
 @ app.route('/search/id', methods=['GET', 'POST'])
 def search_id():
-    print(request.form['summon_name'])
+    # print(request.form['summon_name'])
     if request.form['summon_name'] == '':
         # print("search_id=null")
         return redirect('/search')
@@ -95,6 +121,11 @@ def search_id():
         #print("LOL : ", tier, rank, pts)
         #print("TFT : ", tft_tier, tft_rank, tft_pts)
         return render_template('search.html', summon_name=summoner_name, tier=tier, rank=rank, pts=pts, tft_tier=tft_tier, tft_rank=tft_rank, tft_pts=tft_pts)
+
+
+@ app.route('/search/legacy')
+def search_legacy():
+    pass
 
 
 if __name__ == '__main__':
