@@ -77,14 +77,16 @@ def my_match_data_by_puuid(pid, pname):
         start_time = str(start_time // (3600)) + 'hours ago'
     else:
         start_time = str(start_time // (60)) + 'mins ago'
+
     game_type = res['info']['gameMode']
     if game_type == 'ARAM':
         game_type = '칼바람'
     elif game_type == 'CLASSIC':
-        game_type = '솔로랭크'
+        game_type = '협곡'
+
     game_time = res['info']['gameDuration']
-    game_time = str(game_time // 60000)+'m ' + \
-        str((game_time % 60000) // 1000)+'s'
+    game_time = str(game_time // 60)+'m ' + \
+        str(game_time % 60)+'s'
     kda, cs, deal, win = -1, -1, -1, False
     participants = res['info']['participants']
     for i in range(10):
@@ -98,6 +100,7 @@ def my_match_data_by_puuid(pid, pname):
         else:
             kda = round((kills + assists) / deaths, 2)
         cs = participants[i]['totalMinionsKilled']
+        champ = participants[i]['championName']
         deal = participants[i]['totalDamageDealtToChampions']
         win = participants[i]['win']
         if win:
@@ -105,7 +108,7 @@ def my_match_data_by_puuid(pid, pname):
         else:
             win = 'danger'
 
-    return {'start_time': start_time, 'kda': kda, 'game_time': game_time, 'game_type': game_type, 'cs': cs, 'deal': deal, 'win': win}
+    return {'start_time': start_time, 'kda': kda, 'game_time': game_time, 'game_type': game_type, 'cs': cs, 'deal': deal, 'win': win, 'champ': champ}
 
 
 def match_list_by_puuid(pid):
