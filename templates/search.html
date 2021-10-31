@@ -126,7 +126,7 @@
             {% for match in match_list%}
             <a href="#" class="list-group-item list-group-item-{{match['win']}}">
               <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1"> {{match['game_type']}} </h5>
+                <h5 class="mb-1"> {{match['game_type']}}/{{match['champ']}} </h5>
                 <small class="text-muted">{{match['start_time']}}</small>
               </div>
               <p class="mb-1"> KDA : {{match['kda']}} / Deal : {{match['deal']}} / CS : {{match['cs']}}</p>
