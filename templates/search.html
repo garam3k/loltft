@@ -97,7 +97,7 @@
                 <h4 class="my-0 fw-normal">협곡 ( Solo Rank )</h4>
               </div>
               <div class="card-body">
-              {% if lol_list is iterable %}
+              {% if lol_list is defined %}
                 <h1 class="card-title pricing-card-title">
                   {{ lol_list[0] }} {{ lol_list[1] }}<small class="text-muted fw-light"> {{ lol_list[2] }}LP</small>
                 </h1>
@@ -144,20 +144,26 @@
                 <h4 class="my-0 fw-normal">전략적 팀 전투 ( Solo Rank )</h4>
               </div>
               <div class="card-body">
-              {% if tft_list is iterable %}
+              {% if tft_list is defined %}
                 <h1 class="card-title pricing-card-title">
                   {{ tft_list[0] }} {{ tft_list[1] }}<small class="text-muted fw-light"> {{ tft_list[2] }}LP</small>
                 </h1>
-              {% else %}
-                <h1 class="card-title pricing-card-title">
-                  UnRanked
-                </h1>
-              {% endif %}
                 <ul class="list-unstyled mt-3 mb-4">
                   <div class ="text-center">
                     <img src="\static\ranked-emblems\Emblem_{{ tft_list[0] }}.png" class="rounded img-fluid w-50">
                   </div>
                 </ul>
+              {% else %}
+                <h1 class="card-title pricing-card-title">
+                  UnRanked
+                </h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                  <div class ="text-center">
+                    <img src="\static\ranked-emblems\Emblem_.png" class="rounded img-fluid w-50">
+                  </div>
+                </ul>              
+              {% endif %}
+
                 <div class="d-grid gap-2 d-md-block">
                   <button class="btn btn-primary" type="button">최근전적</button>
                   <button class="btn btn-primary" type="button">만난적 있을까?</button>
