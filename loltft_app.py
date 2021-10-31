@@ -15,7 +15,7 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 app = Flask(__name__, static_url_path='/static')
 CORS(app)
 app.secret_key = 'garam_server'  # 로그인 기능과 관련된 key 선언
-api_key = ''
+api_key = 'RGAPI-0ef0516d-c0a5-4e6c-8db8-02505c88b2ff'
 
 # app.register_blueprint(blog.blog_abtest, url_prefix='/blog')
 # login_manager = LoginManager()  # 로그인 객체 선언
@@ -31,7 +31,8 @@ def get_id_by_summonname(summon_name):
     # print(str(res.status_code) + " // " + res.text)
 
     enc_id = json.loads(res.text)['id']
-    return enc_id
+    puuid = json.loads(res.text)['puuid']
+    return {'id': enc_id, 'puuid': puuid}
 
 
 def get_rank_by_id(enc_id):
@@ -70,8 +71,15 @@ def my_match_data_by_puuid(pid, pname):
     res = json.loads(res.text)
 
     start_time = round(time.time() - res['info']['gameEndTimestamp']/1000)
+    if start_time > 3600*24:
+        start_time = str(start_time // (3600*24)) + 'days ago'
+    elif start_time > 3600:
+        start_time = str(start_time // (3600)) + 'hours ago'
+    else:
+        start_time = str(start_time // (60)) + 'mins ago'
     game_type = res['info']['gameMode']
     game_time = res['info']['gameDuration']
+    game_time = str(game_time // 60)+'m ' + str(game_time % 60)+'s'
     kda, cs, deal, win = -1, -1, -1, False
     participants = res['info']['participants']
     for i in range(10):
@@ -84,8 +92,20 @@ def my_match_data_by_puuid(pid, pname):
         cs = participants[i]['totalMinionsKilled']
         deal = participants[i]['totalDamageDealtToChampions']
         win = participants[i]['win']
+        if win:
+            win = 'primary'
+        else:
+            win = 'danger'
 
     return {'start_time': start_time, 'kda': kda, 'game_time': game_time, 'game_type': game_type, 'cs': cs, 'deal': deal, 'win': win}
+
+
+def match_list_by_puuid(pid):
+    base_url = 'https://asia.api.riotgames.com/lol/match/v5/matches/by-puuid/'
+    headers = {'X-Riot-Token': api_key}
+    res = requests.get(base_url+pid+'/ids?count=5', headers=headers)
+    res = json.loads(res.text)
+    return res
 
 
 @ app.before_request
@@ -114,13 +134,25 @@ def search_id():
         return redirect('/search')
     else:
         summoner_name = request.form['summon_name']
-        enc_id = get_id_by_summonname(summoner_name)
+        ids = get_id_by_summonname(summoner_name)
+        enc_id, puuid = ids['id'], ids['puuid']
         tier, rank, pts = get_rank_by_id(enc_id)
         tft_tier, tft_rank, tft_pts = get_tft_rank_by_id(enc_id)
+        lol_list = [tier, rank, pts]
+        tft_list = [tft_tier, tft_rank, tft_pts]
         #print("find id of ", summoner_name)
         #print("LOL : ", tier, rank, pts)
         #print("TFT : ", tft_tier, tft_rank, tft_pts)
-        return render_template('search.html', summon_name=summoner_name, tier=tier, rank=rank, pts=pts, tft_tier=tft_tier, tft_rank=tft_rank, tft_pts=tft_pts)
+
+        matches = match_list_by_puuid(puuid)
+        # print(matches)
+        match_list = []
+        for i in range(len(matches)):
+            match_list.append(my_match_data_by_puuid(
+                matches[i], summoner_name))
+        # print(match_list)
+
+        return render_template('search.html', summon_name=summoner_name, lol_list=lol_list, tft_list=tft_list, match_list=match_list)
 
 
 @ app.route('/search/legacy')
