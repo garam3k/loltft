@@ -78,6 +78,10 @@ def my_match_data_by_puuid(pid, pname):
     else:
         start_time = str(start_time // (60)) + 'mins ago'
     game_type = res['info']['gameMode']
+    if game_type == 'ARAM':
+        game_type = '칼바람'
+    elif game_type == 'CLASSIC':
+        game_type = '솔로랭크'
     game_time = res['info']['gameDuration']
     game_time = str(game_time // 60000)+'m ' + \
         str((game_time % 60000) // 1000)+'s'
