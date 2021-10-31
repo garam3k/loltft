@@ -70,7 +70,7 @@ def my_match_data_by_puuid(pid, pname):
     res = requests.get(base_url+pid, headers=headers)
     res = json.loads(res.text)
 
-    start_time = round(time.time() - res['info']['gameEndTimestamp']/1000)
+    start_time = round(time.time() - res['info']['gameStartTimestamp']/1000)
     if start_time > 3600*24:
         start_time = str(start_time // (3600*24)) + 'days ago'
     elif start_time > 3600:
@@ -79,7 +79,8 @@ def my_match_data_by_puuid(pid, pname):
         start_time = str(start_time // (60)) + 'mins ago'
     game_type = res['info']['gameMode']
     game_time = res['info']['gameDuration']
-    game_time = str(game_time // 60)+'m ' + str(game_time % 60)+'s'
+    game_time = str(game_time // 60000)+'m ' + \
+        str((game_time % 60000) // 1000)+'s'
     kda, cs, deal, win = -1, -1, -1, False
     participants = res['info']['participants']
     for i in range(10):
@@ -88,7 +89,10 @@ def my_match_data_by_puuid(pid, pname):
         kills = participants[i]['kills']
         deaths = participants[i]['deaths']
         assists = participants[i]['assists']
-        kda = round((kills + assists) / deaths, 2)
+        if deaths == 0:
+            kda = kills + assists
+        else:
+            kda = round((kills + assists) / deaths, 2)
         cs = participants[i]['totalMinionsKilled']
         deal = participants[i]['totalDamageDealtToChampions']
         win = participants[i]['win']
