@@ -1,3 +1,4 @@
+from types import resolve_bases
 from flask import Flask, jsonify, request, render_template, make_response, session, redirect, url_for
 from flask_login import LoginManager, current_user, login_required, logout_user, login_user
 from flask_cors import CORS
@@ -107,12 +108,58 @@ def my_match_data_by_puuid(pid, pname):
             win = 'primary'
         else:
             win = 'danger'
+        break
 
     return {'start_time': start_time, 'kda': kda, 'game_time': game_time, 'game_type': game_type, 'cs': cs, 'deal': deal, 'win': win, 'champ': champ}
 
 
+def tft_my_match_data_by_puuid(matchid, puuid):
+    base_url = 'https://asia.api.riotgames.com/tft/match/v1/matches/'
+    headers = {'X-Riot-Token': api_key}
+    res = requests.get(base_url+matchid, headers=headers)
+    res = json.loads(res.text)
+
+    tft_start_time = res['info']['game_datetime']
+    tft_start_time = round(time.time() - tft_start_time/1000)
+    if tft_start_time > 3600*24:
+        tft_start_time = str(tft_start_time // (3600*24)) + 'days ago'
+    elif tft_start_time > 3600:
+        tft_start_time = str(tft_start_time // (3600)) + 'hours ago'
+    else:
+        tft_start_time = str(tft_start_time // (60)) + 'mins ago'
+
+    participants = res['info']['participants']
+    for i in range(8):
+        if participants[i]['puuid'] != puuid:
+            continue
+        tft_placement = participants[i]['placement']
+        if tft_placement > 4:
+            win = 'danger'
+        else:
+            win = 'primary'
+
+        tft_deal = participants[i]['total_damage_to_players']
+        tft_gold = participants[i]['gold_left']
+        tft_round = participants[i]['last_round']
+        tft_round = str(((tft_round-4)//7)+2) + '-' + str((tft_round-4) % 7)
+
+        tft_time = participants[i]['time_eliminated']
+        tft_time = round(tft_time)
+        tft_time = str(tft_time//60)+'m '+str(tft_time % 60)+'s'
+
+    return {'tft_start_time': tft_start_time, 'tft_placement': tft_placement, 'tft_deal': tft_deal, 'tft_gold': tft_gold, 'tft_round': tft_round, 'tft_time': tft_time, 'win': win}
+
+
 def match_list_by_puuid(pid):
     base_url = 'https://asia.api.riotgames.com/lol/match/v5/matches/by-puuid/'
+    headers = {'X-Riot-Token': api_key}
+    res = requests.get(base_url+pid+'/ids?count=5', headers=headers)
+    res = json.loads(res.text)
+    return res
+
+
+def tft_match_list_by_puuid(pid):
+    base_url = 'https://asia.api.riotgames.com/tft/match/v1/matches/by-puuid/'
     headers = {'X-Riot-Token': api_key}
     res = requests.get(base_url+pid+'/ids?count=5', headers=headers)
     res = json.loads(res.text)
@@ -162,8 +209,13 @@ def search_id():
             match_list.append(my_match_data_by_puuid(
                 matches[i], summoner_name))
         # print(match_list)
+        tft_matches = tft_match_list_by_puuid(puuid)
+        tft_match_list = []
+        for i in range(len(tft_matches)):
+            tft_match_list.append(
+                tft_my_match_data_by_puuid(tft_matches[i], puuid))
 
-        return render_template('search.html', summon_name=summoner_name, lol_list=lol_list, tft_list=tft_list, match_list=match_list)
+        return render_template('search.html', summon_name=summoner_name, lol_list=lol_list, tft_list=tft_list, match_list=match_list, tft_match_list=tft_match_list)
 
 
 @ app.route('/search/legacy')
